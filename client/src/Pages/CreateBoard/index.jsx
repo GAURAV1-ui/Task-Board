@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import AddWork from './AddWork';
+import AddWork from '../../components/AddWork';
+import ViewWork from '../../components/ViewWork';
+import EditWork from '../../components/EditWork';
 
 function CreateBoard() {
   const [boardName, setBoardName] = useState('');
@@ -7,20 +9,24 @@ function CreateBoard() {
   const [tasks, setTasks] = useState([]);
   const [isAddingTask, setIsAddingTask] = useState(false);
 
-  const handleSubmitTask = (taskTitle, taskDescription, assignedTo, status) => {
-    setTasks([{ taskTitle, taskDescription, assignedTo, status }, ...tasks]);
+  const handleSubmitTask = (taskTitle, taskDescription, assignedTo, status, isEditingTask = false) => {
+    setTasks([{ taskTitle, taskDescription, assignedTo, status, isEditingTask }, ...tasks]);
+    setIsAddingTask(false); // Reset after task is added
   };
+
   const handleAddTask = () => {
     setIsAddingTask(true);
-  }
+  };
 
   const handleSubmitBoard = (e) => {
-    e.preventDefault(); 
-    console.log({
-      boardName,
-      description,
-      tasks,
-    });
+    e.preventDefault();
+    console.log({ boardName, description, tasks });
+  };
+
+  const handleEditTaskSubmit = (index, taskTitle, taskDescription, assignedTo, status) => {
+    const updatedTasks = [...tasks];
+    updatedTasks[index] = { taskTitle, taskDescription, assignedTo, status, isEditingTask: false };
+    setTasks(updatedTasks);
   };
 
   return (
@@ -40,40 +46,43 @@ function CreateBoard() {
         </div>
 
         <div className="mb-4">
-          
           <textarea
             placeholder="Board description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             className="border-b-2 border-gray-300 w-full px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
           />
-
         </div>
 
         <div className="mb-4">
-
           {tasks.map((task, index) => (
-            <div
-            key={index}
-            className="flex items-center justify-between p-4 bg-purple-100 rounded-lg mb-4 shadow"
-          >
-            <div>
-              <p className="text-lg font-semibold">{task.taskTitle}</p>
-              <p className="text-xs text-gray-500">{task.status}</p>
-            </div>  
-          
-            <div>
-            <button className="bg-transparent text-xs text-gray-500 border-none px-3 py-1 rounded-md hover:bg-blue-200">
-              Edit
-            </button>
-              <span className="w-8 h-8 flex items-center justify-center bg-purple-200 text-purple-800 font-semibold rounded-full">
-                {task.assignedTo.charAt(0).toUpperCase()}
-              </span>
-            </div>
-          </div>
+            <React.Fragment key={index}>
+              {!task.isEditingTask ? (
+                <ViewWork
+                  taskTitle={task.taskTitle}
+                  assignedTo={task.assignedTo}
+                  status={task.status}
+                  onEditTask={() => {
+                    const newTasks = [...tasks];
+                    newTasks[index].isEditingTask = true;
+                    setTasks(newTasks);
+                  }}
+                />
+              ) : (
+                <EditWork
+                  onTaskSubmit={(taskTitle, taskDescription, assignedTo, status) =>
+                    handleEditTaskSubmit(index, taskTitle, taskDescription, assignedTo, status)
+                  }
+                  title={task.taskTitle}
+                  description={task.taskDescription}
+                  assignedTo={task.assignedTo}
+                  status={task.status}
+                />
+              )}
+            </React.Fragment>
           ))}
 
-        {isAddingTask ? (
+          {isAddingTask ? (
             <AddWork
               onTaskSubmit={(taskTitle, taskDescription, assignedTo, status) =>
                 handleSubmitTask(taskTitle, taskDescription, assignedTo, status)

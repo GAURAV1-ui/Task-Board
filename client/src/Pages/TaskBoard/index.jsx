@@ -1,16 +1,18 @@
 import React, { useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import AddWork from "../../components/AddWork";
+import EditWork from "../../components/EditWork";
 
 const initialData = {
   todo: [
-    { id: "task-1", content: "Complete ButtonShift Assignment" },
-    { id: "task-2", content: "Write React Code" },
+    { id: "task-1", title: "Hello", description: "Complete ButtonShift Assignment", assignedTo: "@iamsb", status:"To-Do" },
+    { id: "task-2", title: "Hello1", description: "Complete ButtonShift Assignment!!", assignedTo: "@iamsbssd", status:"To-Do" },
   ],
   inProgress: [
-    { id: "task-3", content: "Working on UI Design" },
+    { id: "task-3", title: "Hell02", description: "Complete ButtonShift Assignment11", assignedTo: "@iamsba", status:"In Progress" },
   ],
   completed: [
-    { id: "task-4", content: "Completed Backend Task" },
+    { id: "task-4", title: "Hello3", description: "Complete ButtonShift Assignment222", assignedTo: "@iamsbhkdgh", status:"Done" },
   ],
 };
 
@@ -47,6 +49,12 @@ const TaskBoard = () => {
     });
   };
 
+  console.log(tasks);
+
+  const handleSubmitTask = (taskTitle, taskDescription, assignedTo, status) => {
+    console.log({ taskTitle, taskDescription, assignedTo, status });
+  }
+
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6 text-center">Task Board</h1>
@@ -77,11 +85,11 @@ const TaskBoard = () => {
                   </h2>
 
                   {tasks[columnId].map((task, index) => {
-                    console.log("Rendering task:", task); // Log to verify task ids
                     return (
                       <Draggable key={task.id} draggableId={task.id} index={index}>
                         {(provided, snapshot) => (
-                          <div
+                          
+                          <div 
                             className={`p-4 mb-4 bg-white rounded-lg shadow-md ${
                               snapshot.isDragging ? "bg-gray-300" : ""
                             }`}
@@ -89,13 +97,19 @@ const TaskBoard = () => {
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
                           >
-                            <p>{task.content}</p>
-                          </div>
+                          <EditWork
+                            onTaskSubmit={(taskTitle,taskDescription,assignedTo,status) =>
+                            handleSubmitTask(taskTitle, taskDescription, assignedTo, status)}
+                            title={task.title}
+                            description={task.description}
+                            assignedTo={task.assignedTo}
+                            status={task.status} />
+                          </div>  
                         )}
                       </Draggable>
                     );
                   })}
-                  {provided.placeholder} {/* Ensure placeholder is rendered */}
+                  {provided.placeholder}
                 </div>
               )}
             </Droppable>
