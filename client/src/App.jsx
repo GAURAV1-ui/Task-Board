@@ -14,7 +14,7 @@ function App() {
       <Navbar/>
       {/* <MyWorkBoard/> */}
       <CreateBoard/>
-      {/* <TaskBoard/> */}
+      <TaskBoard/>
     </>
   )
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AddWork from '../../components/AddWork';
 import ViewWork from '../../components/ViewWork';
 import EditWork from '../../components/EditWork';
@@ -9,9 +9,36 @@ function CreateBoard() {
   const [tasks, setTasks] = useState([]);
   const [isAddingTask, setIsAddingTask] = useState(false);
 
-  const handleSubmitTask = (taskTitle, taskDescription, assignedTo, status, isEditingTask = false) => {
-    setTasks([{ taskTitle, taskDescription, assignedTo, status, isEditingTask }, ...tasks]);
-    setIsAddingTask(false); // Reset after task is added
+  // Fetch saved board data from localStorage
+  useEffect(() => {
+    const savedBoard = localStorage.getItem('taskBoard');
+    if (savedBoard) {
+      const parsedBoard = JSON.parse(savedBoard);
+      setBoardName(parsedBoard.boardName);
+      setDescription(parsedBoard.description);
+      setTasks(parsedBoard.tasks || []);
+    }
+  }, []);
+
+  // Function to generate a unique ID (using Date.now as an example)
+  const generateTaskId = () => `task-${Date.now()}`;
+
+  const handleSubmitTask = (taskTitle, taskDescription, assignedTo, status) => {
+    const newTask = {
+      id: generateTaskId(), // Generate a new unique ID
+      taskTitle,
+      taskDescription,
+      assignedTo,
+      status,
+      isEditingTask: false
+    };
+
+    const updatedTasks = [newTask, ...tasks];
+    setTasks(updatedTasks);
+    setIsAddingTask(false);
+
+    // Update localStorage
+    localStorage.setItem('taskBoard', JSON.stringify({ boardName, description, tasks: updatedTasks }));
   };
 
   const handleAddTask = () => {
@@ -20,13 +47,20 @@ function CreateBoard() {
 
   const handleSubmitBoard = (e) => {
     e.preventDefault();
-    console.log({ boardName, description, tasks });
+
+  
+    localStorage.setItem('taskBoard', JSON.stringify({ boardName, description, tasks }));
   };
 
-  const handleEditTaskSubmit = (index, taskTitle, taskDescription, assignedTo, status) => {
-    const updatedTasks = [...tasks];
-    updatedTasks[index] = { taskTitle, taskDescription, assignedTo, status, isEditingTask: false };
+  const handleEditTaskSubmit = (taskId, taskTitle, taskDescription, assignedTo, status) => {
+    const updatedTasks = tasks.map(task =>
+      task.id === taskId
+        ? { ...task, taskTitle, taskDescription, assignedTo, status, isEditingTask: false }
+        : task
+    );
     setTasks(updatedTasks);
+
+    localStorage.setItem('taskBoard', JSON.stringify({ boardName, description, tasks: updatedTasks }));
   };
 
   return (
@@ -56,7 +90,7 @@ function CreateBoard() {
 
         <div className="mb-4">
           {tasks.map((task, index) => (
-            <React.Fragment key={index}>
+            <React.Fragment key={task.id}>
               {!task.isEditingTask ? (
                 <ViewWork
                   taskTitle={task.taskTitle}
@@ -71,7 +105,7 @@ function CreateBoard() {
               ) : (
                 <EditWork
                   onTaskSubmit={(taskTitle, taskDescription, assignedTo, status) =>
-                    handleEditTaskSubmit(index, taskTitle, taskDescription, assignedTo, status)
+                    handleEditTaskSubmit(task.id, taskTitle, taskDescription, assignedTo, status)
                   }
                   title={task.taskTitle}
                   description={task.taskDescription}
